@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MabiPale2.Shared;
 using MabiLib.Structs;
+using MabiLib.Const;
 
 namespace MabiPale2.Plugins.EntityLogger.Entities
 {
@@ -17,11 +18,11 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
         {
             get
             {
-                if (EntityId >= 0x0010F00000000001)
+                if (EntityId >= MabiId.Npcs)
                     return Regex.IsMatch(Name, @"^\d+$", RegexOptions.Compiled) ? "Monster" : "NPC";
-                if (EntityId >= 0x0010030000000001)
+                if (EntityId >= MabiId.Partners)
                     return "Partner";
-                if (EntityId >= 0x0010010000000001)
+                if (EntityId >= MabiId.Pets)
                     return "Pet";
 
                 return "Player";
