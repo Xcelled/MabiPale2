@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace MabiPale2.Plugins.EntityLogger.Entities
 {
     [ImplementPropertyChanged]
-    public class Entity : INotifyPropertyChanged
+    public abstract class Entity : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -22,8 +22,8 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
         public Lazy<string> Info { get; protected set; }
         public Lazy<string> Script { get; protected set; }
 
-        private abstract string GenerateInfo();
-        private abstract string GenerateScript();
+        protected abstract string GenerateInfo();
+        protected abstract string GenerateScript();
 
         public Entity()
         {

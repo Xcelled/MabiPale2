@@ -8,8 +8,8 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MabiPale2.Plugins.EntityLogger</RootNamespace>
-    <AssemblyName>MabiPale2.Plugins.EntityLogger</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <AssemblyName>EntityLogger</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\MabiPale2\bin\Debug\Plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,12 +28,16 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\MabiPale2\bin\Release\Plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MabiLib">
+      <HintPath>..\Libs\MabiLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="PropertyChanged, Version=1.50.1.0, Culture=neutral, PublicKeyToken=ee3ee20bcf148ddd, processorArchitecture=MSIL">
       <HintPath>..\packages\PropertyChanged.Fody.1.50.1\Lib\portable-net4+sl4+wp8+win8+wpa81+MonoAndroid16+MonoTouch40\PropertyChanged.dll</HintPath>
       <Private>False</Private>
@@ -65,6 +69,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Entities\Creature.cs" />
     <Compile Include="Entities\Entity.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -99,7 +104,18 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\MabiPale2.Plugins\MabiPale2.Plugins.csproj">
+      <Project>{694421c4-7979-4440-a917-3712c926aa2b}</Project>
+      <Name>MabiPale2.Plugins</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\MabiPale2.Shared\MabiPale2.Shared.csproj">
+      <Project>{c80e0843-5174-42f7-8715-86b7e46beabf}</Project>
+      <Name>MabiPale2.Shared</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="FodyWeavers.xml" />
   </ItemGroup>
