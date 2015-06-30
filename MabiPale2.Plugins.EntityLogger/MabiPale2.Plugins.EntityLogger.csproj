@@ -71,6 +71,7 @@
     </Compile>
     <Compile Include="Entities\Creature.cs" />
     <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Entities\Prop.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
