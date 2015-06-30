@@ -40,5 +40,19 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
             Info = new Lazy<string>(GenerateInfo);
             Script = new Lazy<string>(GenerateScript);
         }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as Entity;
+            if (other == null)
+                return false;
+
+            return EntityId == other.EntityId;
+        }
+
+        public override int GetHashCode()
+        {
+            return EntityId.GetHashCode();
+        }
     }
 }
