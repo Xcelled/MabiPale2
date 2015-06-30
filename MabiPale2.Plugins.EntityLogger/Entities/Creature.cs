@@ -79,6 +79,11 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
         [DependsOn("LifeMaxBase", "LifeMaxMod")]
         public float LifeMax { get { return LifeMaxBase + LifeMaxMod; } }
 
+        public Creature()
+        {
+            Items = new Dictionary<long, ItemInfo>();
+        }
+
         protected override string GenerateInfo()
         {
             var sb = new StringBuilder();
