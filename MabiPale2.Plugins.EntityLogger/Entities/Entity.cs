@@ -15,6 +15,8 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 
         public long EntityId { get; set; }
         public string Name { get; set; }
+        public DateTime Seen { get; set; }
+
         public abstract string EntityType { get; }
 
         // Use lazies to defer building of the script till it's actually needed
