@@ -27,8 +27,10 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 		protected abstract string GenerateInfo();
 		protected abstract string GenerateScript();
 
-		public Entity()
+		protected Entity()
 		{
+			Seen = DateTime.Now;
+
 			// Subscribe to our own property change
 			PropertyChanged += Entity_PropertyChanged;
 		}

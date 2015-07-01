@@ -37,7 +37,7 @@
                       IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="True"
                       CanUserResizeColumns="True" CanUserSortColumns="True">
 				<DataGrid.Columns>
-					<DataGridTextColumn Header="Seen" Binding="{Binding Seen, StringFormat=H\:mm\:ss}" MinWidth="50" />
+					<DataGridTextColumn Header="Seen" Binding="{Binding Seen, StringFormat=H\\:mm\\:ss}" MinWidth="50" />
 					<DataGridTextColumn Header="Type" Binding="{Binding EntityType}" MinWidth="80" />
 					<DataGridTextColumn Header="Id" Binding="{Binding EntityId, StringFormat=X16}" MinWidth="130" />
 					<DataGridTextColumn Header="Name" Binding="{Binding Name}" MinWidth="150" />
