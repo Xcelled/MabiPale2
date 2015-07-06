@@ -33,6 +33,7 @@ namespace MabiPale2.Plugins.EntityLogger
 			manager.AddToToolbar(Resources.bug, Name, OnClick);
 
 			manager.Recv += OnRecv;
+			manager.Clear += OnClear;
 		}
 
 		private void OnClick(object sender, EventArgs e)
@@ -41,6 +42,15 @@ namespace MabiPale2.Plugins.EntityLogger
 				_window.Value.Focus();
 			else
 				_window.Value.Show();
+		}
+
+		private void OnClear()
+		{
+			lock (entities)
+				entities.Clear();
+
+			if (form != null && !form.IsDisposed)
+				form.ClearEntities();
 		}
 
 		private void OnRecv(PalePacket palePacket)
