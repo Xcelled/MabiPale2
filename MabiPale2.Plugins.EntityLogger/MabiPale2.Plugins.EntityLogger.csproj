@@ -38,6 +38,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mabi">
+      <HintPath>..\Libs\Mabi.dll</HintPath>
+    </Reference>
     <Reference Include="MabiLib">
       <HintPath>..\Libs\MabiLib.dll</HintPath>
       <Private>False</Private>
@@ -62,12 +65,14 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="StructUtil.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="Entities\Creature.cs" />
     <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Entities\Item.cs" />
     <Compile Include="Entities\Prop.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MainWindow.xaml.cs">

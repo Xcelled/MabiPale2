@@ -81,6 +81,12 @@ namespace MabiPale2.Plugins.EntityLogger
 						var entityPacket = new Packet(entityData, 0);
 						AddCreatureInfo(entityPacket);
 					}
+					// Item
+					else if (type == 80)
+					{
+						var entityPacket = new Packet(entityData, 0);
+						AddItem(entityPacket);
+					}
 					// Prop
 					else if (type == 160)
 					{
@@ -204,6 +210,75 @@ namespace MabiPale2.Plugins.EntityLogger
 				prop.Direction = packet.GetFloat();
 
 			AddEntity(prop);
+		}
+
+		private void AddItem(Packet packet)
+		{
+			var item = new Item();
+
+			item.EntityId = packet.GetLong();
+			item.KnowledgeLevel = (ItemPacketType)packet.GetByte();
+			item.Info = packet.GetBin().GetStruct<ItemInfo>(0);
+
+			if (item.KnowledgeLevel == ItemPacketType.Public)
+			{
+				packet.GetByte();
+				packet.GetByte();
+
+				if ((packet.GetByte() & 1) != 0)
+					packet.GetFloat();
+
+				packet.GetByte();
+				item.SizeMultiplier = packet.GetFloat();
+
+				item.BounceStyle = (ItemBounceStyle)packet.GetByte();
+			}
+			else
+			{
+				item.OptionInfo = packet.GetBin().GetStruct<ItemOptionInfo>(0);
+
+				var possible_ego = packet.GetString();
+
+				if (packet.NextIs(PacketElementType.Byte)) // Yup. It's an ego
+				{
+					var ego = new EgoInfo();
+
+					ego.Name = possible_ego;
+					ego.Race = (EgoRace)packet.GetByte();
+					ego.Fullness = packet.GetByte();
+
+					ego.SocialLevel = packet.GetByte();
+					ego.SocialExp = packet.GetInt();
+					ego.StrLevel = packet.GetByte();
+					ego.StrExp = packet.GetInt();
+					ego.IntLevel = packet.GetByte();
+					ego.IntExp = packet.GetInt();
+					ego.DexLevel = packet.GetByte();
+					ego.DexExp = packet.GetInt();
+					ego.WillLevel = packet.GetByte();
+					ego.WillExp = packet.GetInt();
+					ego.LuckLevel = packet.GetByte();
+					ego.LuckExp = packet.GetInt();
+					ego.AwakeningEnergy = packet.GetByte();
+					ego.AwakeningExp = packet.GetInt();
+
+					packet.GetLong();
+					ego.LastFeeding = packet.GetDate();
+					packet.GetInt();
+
+					item.EgoInfo = ego;
+
+					item.MetaData1 = new Aura.Mabi.MabiDictionary(packet.GetString());
+				}
+				else
+				{
+					item.MetaData1 = new Aura.Mabi.MabiDictionary(possible_ego);
+				}
+
+				item.MetaData2 = new Aura.Mabi.MabiDictionary(packet.GetString());
+			}
+
+			return item;
 		}
 
 		private void AddEntity(Entity entity)
