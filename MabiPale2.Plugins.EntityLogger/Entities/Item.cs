@@ -94,7 +94,7 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 					sb.AppendLine("\tAwakening Energy: {0}", EgoInfo.AwakeningEnergy);
 					sb.AppendLine("\tAwakening Exp: {0}", EgoInfo.AwakeningExp);
 
-					sb.AppendLine("Last Feeding: {0}", EgoInfo.LastFeeding);
+					sb.AppendLine("\tLast Feeding: {0}", EgoInfo.LastFeeding);
 
 					sb.AppendLine();
 				}
@@ -114,7 +114,66 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 
 		protected override string GenerateScript()
 		{
-			return "";
+			var sb = new StringBuilder();
+
+			sb.AppendLine("var i = new Item({0});", ItemInfo.Id);
+			sb.AppendLine();
+
+			foreach (var ifi in typeof(ItemInfo).GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(f => f.MetadataToken))
+			{
+				sb.AppendFormat("i.Info.{0} = ", ifi.Name);
+				if (ifi.Name.IndexOf("pocket", StringComparison.OrdinalIgnoreCase) > -1)
+					sb.AppendFormat("Pocket.{0}", ifi.GetValue(ItemInfo));
+				else if (ifi.Name.IndexOf("color", StringComparison.OrdinalIgnoreCase) > -1)
+					sb.AppendFormat("0x{0:X}", ifi.GetValue(ItemInfo));
+				else
+					sb.AppendFormat("{0}", ifi.GetValue(ItemInfo));
+
+				sb.AppendLine(";");
+			}
+			sb.AppendLine();
+
+			if (KnowledgeLevel == ItemPacketType.Public)
+			{
+				
+			}
+			else
+			{
+				foreach (var ifi in typeof(ItemOptionInfo).GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(f => f.MetadataToken))
+				{
+					sb.AppendLine("i.OptionInfo.{0} = {1};", ifi.Name, ifi.GetValue(OptionInfo));
+				}
+				sb.AppendLine();
+
+				if (EgoInfo != null)
+				{
+					sb.AppendLine("i.EgoInfo.Name = {0};", EgoInfo.Name);
+					sb.AppendLine("i.EgoInfo.Race = {0};", EgoInfo.Race);
+
+					sb.AppendLine("i.EgoInfo.Social Level = {0};", EgoInfo.SocialLevel);
+					sb.AppendLine("i.EgoInfo.Social Exp = {0};", EgoInfo.SocialExp);
+					sb.AppendLine("i.EgoInfo.Str Level = {0};", EgoInfo.StrLevel);
+					sb.AppendLine("i.EgoInfo.Str Exp = {0};", EgoInfo.StrExp);
+					sb.AppendLine("i.EgoInfo.Int Level = {0};", EgoInfo.IntLevel);
+					sb.AppendLine("i.EgoInfo.Int Exp = {0};", EgoInfo.IntExp);
+					sb.AppendLine("i.EgoInfo.Dex Level = {0};", EgoInfo.DexLevel);
+					sb.AppendLine("i.EgoInfo.Dex Exp = {0};", EgoInfo.DexExp);
+					sb.AppendLine("i.EgoInfo.Will Level = {0};", EgoInfo.WillLevel);
+					sb.AppendLine("i.EgoInfo.Will Exp = {0};", EgoInfo.WillExp);
+					sb.AppendLine("i.EgoInfo.Luck Level = {0};", EgoInfo.LuckLevel);
+					sb.AppendLine("i.EgoInfo.Luck Exp = {0};", EgoInfo.LuckExp);
+					sb.AppendLine("i.EgoInfo.Awakening Energy = {0};", EgoInfo.AwakeningEnergy);
+					sb.AppendLine("i.EgoInfo.Awakening Exp = {0};", EgoInfo.AwakeningExp);
+
+					sb.AppendLine();
+				}
+
+				sb.AppendLine("i.MetaData1 = new MabiDictionary(\"{0}\");", MetaData1.ToString());
+				sb.AppendLine("i.MetaData2 = new MabiDictionary(\"{0}\");", MetaData2.ToString());
+
+			}
+
+			return sb.ToString();
 		}
 
 		public static void Parse(Packet packet, Item item)
