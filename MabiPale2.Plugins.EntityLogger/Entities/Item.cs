@@ -13,8 +13,19 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 	[ImplementPropertyChanged]
 	public class Item : Entity
 	{
+		private ItemInfo _itemInfo;
+
 		public ItemPacketType KnowledgeLevel { get; set; }
-		public ItemInfo Info { get; set; }
+		public ItemInfo ItemInfo
+		{
+			get { return _itemInfo; }
+			set { _itemInfo = value; Name = "Class: " + value.Id; }
+		}
+
+		public override string EntityType
+		{
+			get { return "Item"; }
+		}
 
 		// Public only
 		public float SizeMultiplier { get; set; }
@@ -23,7 +34,7 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 		// Private only
 		public ItemOptionInfo OptionInfo { get; set; }
 		public EgoInfo EgoInfo { get; set; }
-		
+
 		public MabiDictionary MetaData1 { get; set; }
 		public MabiDictionary MetaData2 { get; set; }
 
@@ -40,7 +51,10 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 			sb.AppendLine("--- Item Info ---");
 			foreach (var ifi in typeof(ItemInfo).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).OrderBy(f => f.MetadataToken))
 			{
-				sb.AppendLine("\t{0}: {1}", ifi.Name, ifi.GetValue(Info));
+				sb.AppendFormat("\t{0}: {1}", ifi.Name, ifi.GetValue(ItemInfo));
+				if (ifi.Name.IndexOf("color", StringComparison.OrdinalIgnoreCase) > -1)
+					sb.AppendFormat(" (0x{0:X})", ifi.GetValue(ItemInfo));
+				sb.AppendLine();
 			}
 			sb.AppendLine();
 
@@ -98,6 +112,72 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 			return sb.ToString();
 		}
 
+		protected override string GenerateScript()
+		{
+			return "";
+		}
+
+		public static void Parse(Packet packet, Item item)
+		{
+			item.EntityId = packet.GetLong();
+			item.KnowledgeLevel = (ItemPacketType)packet.GetByte();
+			item.ItemInfo = packet.GetObj<ItemInfo>();
+
+			if (item.KnowledgeLevel == ItemPacketType.Public)
+			{
+				packet.GetByte();
+				packet.GetByte();
+
+				if ((packet.GetByte() & 1) != 0)
+					item.SizeMultiplier = packet.GetFloat();
+
+				item.BounceStyle = (ItemBounceStyle)packet.GetByte();
+			}
+			else
+			{
+				item.OptionInfo = packet.GetObj<ItemOptionInfo>();
+
+				var possibleEgo = packet.GetString();
+
+				if (packet.NextIs(PacketElementType.Byte)) // Yup. It's an ego
+				{
+					var ego = new EgoInfo();
+
+					ego.Name = possibleEgo;
+					ego.Race = (EgoRace)packet.GetByte();
+					ego.Fullness = packet.GetByte();
+
+					ego.SocialLevel = packet.GetByte();
+					ego.SocialExp = packet.GetInt();
+					ego.StrLevel = packet.GetByte();
+					ego.StrExp = packet.GetInt();
+					ego.IntLevel = packet.GetByte();
+					ego.IntExp = packet.GetInt();
+					ego.DexLevel = packet.GetByte();
+					ego.DexExp = packet.GetInt();
+					ego.WillLevel = packet.GetByte();
+					ego.WillExp = packet.GetInt();
+					ego.LuckLevel = packet.GetByte();
+					ego.LuckExp = packet.GetInt();
+					ego.AwakeningEnergy = packet.GetByte();
+					ego.AwakeningExp = packet.GetInt();
+
+					packet.GetLong();
+					ego.LastFeeding = packet.GetDate();
+					packet.GetInt();
+
+					item.EgoInfo = ego;
+
+					item.MetaData1 = new MabiDictionary(packet.GetString());
+				}
+				else
+				{
+					item.MetaData1 = new MabiDictionary(possibleEgo);
+				}
+
+				item.MetaData2 = new MabiDictionary(packet.GetString());
+			}
+		}
 	}
 
 	public enum ItemBounceStyle : byte

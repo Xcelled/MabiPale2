@@ -17,6 +17,8 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 		public string Name { get; set; }
 		public DateTime Seen { get; set; }
 
+		public Exception Error { get; set; }
+
 		public abstract string EntityType { get; }
 
 		// Use lazies to defer building of the script till it's actually needed
@@ -41,8 +43,8 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 				return;
 
 			// Invalidate scripts when a property changes.
-			Info = new Lazy<string>(GenerateInfo);
-			Script = new Lazy<string>(GenerateScript);
+			Info = new Lazy<string>(GenerateInfoInternal);
+			Script = new Lazy<string>(GenerateScriptInternal);
 		}
 
 		public override bool Equals(object obj)
@@ -57,6 +59,16 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 		public override int GetHashCode()
 		{
 			return EntityId.GetHashCode();
+		}
+
+		private string GenerateInfoInternal()
+		{
+			return Error != null ? Error.ToString() : GenerateInfo();
+		}
+
+		private string GenerateScriptInternal()
+		{
+			return Error != null ? "" : GenerateScript();
 		}
 	}
 }

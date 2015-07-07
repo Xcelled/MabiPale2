@@ -12,7 +12,7 @@ namespace MabiPale2.Plugins.EntityLogger
 {
 	public class Main : Plugin
 	{
-		private readonly ObservableCollection<Entities.Entity> _entities;
+		private readonly ObservableCollection<Entity> _entities;
 		private readonly Lazy<MainWindow> _window;
 
 		public override string Name
@@ -23,7 +23,7 @@ namespace MabiPale2.Plugins.EntityLogger
 		public Main(IPluginManager p)
 			: base(p)
 		{
-			_entities = new ObservableCollection<Entities.Entity>();
+			_entities = new ObservableCollection<Entity>();
 			_window = new Lazy<MainWindow>(() => new MainWindow(_entities), false);
 		}
 
@@ -46,11 +46,8 @@ namespace MabiPale2.Plugins.EntityLogger
 
 		private void OnClear()
 		{
-			lock (entities)
-				entities.Clear();
-
-			if (form != null && !form.IsDisposed)
-				form.ClearEntities();
+			lock (_entities)
+				_entities.Clear();
 		}
 
 		private void OnRecv(PalePacket palePacket)
@@ -65,6 +62,11 @@ namespace MabiPale2.Plugins.EntityLogger
 			{
 				AddProp(palePacket.Packet);
 			}
+			// ItemNew
+			if (palePacket.Op == 0x59E0)
+			{
+				AddItem(palePacket.Packet);
+			}
 			// EntitiesAppear
 			else if (palePacket.Op == 0x5334)
 			{
@@ -72,25 +74,23 @@ namespace MabiPale2.Plugins.EntityLogger
 				for (int i = 0; i < entityCount; ++i)
 				{
 					var type = palePacket.Packet.GetShort();
-					var len = palePacket.Packet.GetInt();
+					palePacket.Packet.GetInt();
 					var entityData = palePacket.Packet.GetBin();
+					var entityPacket = new Packet(entityData, 0);
 
 					// Creature
 					if (type == 16)
 					{
-						var entityPacket = new Packet(entityData, 0);
 						AddCreatureInfo(entityPacket);
 					}
 					// Item
 					else if (type == 80)
 					{
-						var entityPacket = new Packet(entityData, 0);
 						AddItem(entityPacket);
 					}
 					// Prop
 					else if (type == 160)
 					{
-						var entityPacket = new Packet(entityData, 0);
 						AddProp(entityPacket);
 					}
 				}
@@ -108,79 +108,15 @@ namespace MabiPale2.Plugins.EntityLogger
 
 			var creature = new Creature();
 
-			creature.EntityId = id;
-			creature.Name = packet.GetString();
-			packet.GetString();
-			packet.GetString();
-			creature.Race = packet.GetInt();
-			creature.SkinColor = packet.GetByte();
+			packet.Rewind();
 
-			// [180600, NA187 (25.06.2014)] Changed from byte to short
-			if (packet.NextIs(PacketElementType.Byte))
-				creature.EyeType = packet.GetByte();
-			else if (packet.NextIs(PacketElementType.Short))
-				creature.EyeType = packet.GetShort();
-
-			creature.EyeColor = packet.GetByte();
-			creature.MouthType = packet.GetByte();
-			creature.State = packet.GetUInt();
-			creature.StateEx = packet.GetUInt();
-			// Public only
-			if (packet.NextIs(PacketElementType.Int))
+			try
 			{
-				creature.StateEx2 = packet.GetUInt();
-
-				// [180300, NA166 (18.09.2013)]
-				if (packet.NextIs(PacketElementType.Int))
-					packet.GetUInt();
+				Creature.Parse(packet, creature);
 			}
-			creature.Height = packet.GetFloat();
-			creature.Weight = packet.GetFloat();
-			creature.Upper = packet.GetFloat();
-			creature.Lower = packet.GetFloat();
-			creature.Region = packet.GetInt();
-			creature.X = packet.GetInt();
-			creature.Y = packet.GetInt();
-			creature.Direction = packet.GetByte();
-			creature.BattleState = packet.GetInt();
-			creature.WeaponSet = packet.GetByte();
-			creature.Color1 = packet.GetUInt();
-			creature.Color2 = packet.GetUInt();
-			creature.Color3 = packet.GetUInt();
-			creature.CombatPower = packet.GetFloat();
-			creature.StandStyle = packet.GetString();
-
-			creature.LifeRaw = packet.GetFloat();
-			creature.LifeMaxBase = packet.GetFloat();
-			creature.LifeMaxMod = packet.GetFloat();
-			creature.LifeInjured = packet.GetFloat();
-
-			// [180800, NA196 (14.10.2014)] ?
-			if (packet.NextIs(PacketElementType.Short))
-				packet.GetShort(); // ?
-
-			var regenCount = packet.GetInt();
-			for (int i = 0; i < regenCount; ++i)
-				packet.Skip(6);
-			var unkCount = packet.GetInt();
-			for (int i = 0; i < unkCount; ++i)
-				packet.Skip(6);
-
-			creature.Title = packet.GetUShort();
-			creature.TitleApplied = packet.GetDate();
-			creature.OptionTitle = packet.GetUShort();
-
-			creature.MateName = packet.GetString();
-			creature.Destiny = packet.GetByte();
-
-			var itemCount = packet.GetInt();
-			for (int i = 0; i < itemCount; ++i)
+			catch (Exception ex)
 			{
-				var itemOId = packet.GetLong();
-				var itemInfo = packet.GetObj<ItemInfo>();
-				if (packet.NextIs(PacketElementType.String))
-					packet.GetString(); // Extra Item Info
-				creature.Items.Add(itemOId, itemInfo);
+				creature.Error = new ParseException(ex, packet);
 			}
 
 			AddEntity(creature);
@@ -190,24 +126,14 @@ namespace MabiPale2.Plugins.EntityLogger
 		{
 			var prop = new Prop();
 
-			prop.EntityId = packet.GetLong();
-			prop.Id = packet.GetInt();
-
-			if (prop.IsServerProp)
+			try
 			{
-				prop.Name = packet.GetString();
-				prop.Title = packet.GetString();
-				prop.PropInfo = packet.GetObj<PropInfo>();
+				Prop.Parse(packet, prop);
 			}
-
-			prop.State = packet.GetString();
-			packet.GetLong();
-
-			if (packet.GetBool())
-				prop.Xml = packet.GetString();
-
-			if (!prop.IsServerProp)
-				prop.Direction = packet.GetFloat();
+			catch (Exception ex)
+			{
+				prop.Error = new ParseException(ex, packet);
+			}
 
 			AddEntity(prop);
 		}
@@ -216,69 +142,16 @@ namespace MabiPale2.Plugins.EntityLogger
 		{
 			var item = new Item();
 
-			item.EntityId = packet.GetLong();
-			item.KnowledgeLevel = (ItemPacketType)packet.GetByte();
-			item.Info = packet.GetBin().GetStruct<ItemInfo>(0);
-
-			if (item.KnowledgeLevel == ItemPacketType.Public)
+			try
 			{
-				packet.GetByte();
-				packet.GetByte();
-
-				if ((packet.GetByte() & 1) != 0)
-					packet.GetFloat();
-
-				packet.GetByte();
-				item.SizeMultiplier = packet.GetFloat();
-
-				item.BounceStyle = (ItemBounceStyle)packet.GetByte();
+				Item.Parse(packet, item);
 			}
-			else
+			catch (Exception ex)
 			{
-				item.OptionInfo = packet.GetBin().GetStruct<ItemOptionInfo>(0);
-
-				var possible_ego = packet.GetString();
-
-				if (packet.NextIs(PacketElementType.Byte)) // Yup. It's an ego
-				{
-					var ego = new EgoInfo();
-
-					ego.Name = possible_ego;
-					ego.Race = (EgoRace)packet.GetByte();
-					ego.Fullness = packet.GetByte();
-
-					ego.SocialLevel = packet.GetByte();
-					ego.SocialExp = packet.GetInt();
-					ego.StrLevel = packet.GetByte();
-					ego.StrExp = packet.GetInt();
-					ego.IntLevel = packet.GetByte();
-					ego.IntExp = packet.GetInt();
-					ego.DexLevel = packet.GetByte();
-					ego.DexExp = packet.GetInt();
-					ego.WillLevel = packet.GetByte();
-					ego.WillExp = packet.GetInt();
-					ego.LuckLevel = packet.GetByte();
-					ego.LuckExp = packet.GetInt();
-					ego.AwakeningEnergy = packet.GetByte();
-					ego.AwakeningExp = packet.GetInt();
-
-					packet.GetLong();
-					ego.LastFeeding = packet.GetDate();
-					packet.GetInt();
-
-					item.EgoInfo = ego;
-
-					item.MetaData1 = new Aura.Mabi.MabiDictionary(packet.GetString());
-				}
-				else
-				{
-					item.MetaData1 = new Aura.Mabi.MabiDictionary(possible_ego);
-				}
-
-				item.MetaData2 = new Aura.Mabi.MabiDictionary(packet.GetString());
+				item.Error = new ParseException(ex, packet);
 			}
 
-			return item;
+			AddEntity(item);
 		}
 
 		private void AddEntity(Entity entity)

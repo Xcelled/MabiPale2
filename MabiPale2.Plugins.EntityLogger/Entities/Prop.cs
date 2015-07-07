@@ -82,10 +82,10 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 			{
 				sb.AppendLine("var prop = SpawnProp({0}, {1}, {2}, {3}, {4:0.########f}, {5:0.########f});", Id, PropInfo.Region, PropInfo.X, PropInfo.Y, PropInfo.Direction, PropInfo.Scale);
 
-				if (!string.IsNullOrWhiteSpace(State)) sb.AppendLine("prop.State = \"{0}\"", State);
-				if (!string.IsNullOrWhiteSpace(Xml)) sb.AppendLine("prop.Xml = XElement.Parse(\"{0}\");", Xml.Replace("\"", "\\\""));
-				if (!string.IsNullOrWhiteSpace(Name)) sb.AppendLine("prop.Name = \"{0}\";", Name);
-				if (!string.IsNullOrWhiteSpace(Title)) sb.AppendLine("prop.Title = \"{0}\";", Title);
+				if (!String.IsNullOrWhiteSpace(State)) sb.AppendLine("prop.State = \"{0}\"", State);
+				if (!String.IsNullOrWhiteSpace(Xml)) sb.AppendLine("prop.Xml = XElement.Parse(\"{0}\");", Xml.Replace("\"", "\\\""));
+				if (!String.IsNullOrWhiteSpace(Name)) sb.AppendLine("prop.Name = \"{0}\";", Name);
+				if (!String.IsNullOrWhiteSpace(Title)) sb.AppendLine("prop.Title = \"{0}\";", Title);
 
 				if (PropInfo.Altitude != 0) sb.AppendLine("prop.Info.Altitude = {0:0.########f};", PropInfo.Altitude);
 				if (PropInfo.FixedAltitude != 0) sb.AppendLine("prop.Info.FixedAltitude = {0};", PropInfo.FixedAltitude);
@@ -112,6 +112,28 @@ namespace MabiPale2.Plugins.EntityLogger.Entities
 			}
 
 			return sb.ToString();
+		}
+
+		public static void Parse(Packet packet, Prop prop)
+		{
+			prop.EntityId = packet.GetLong();
+			prop.Id = packet.GetInt();
+
+			if (prop.IsServerProp)
+			{
+				prop.Name = packet.GetString();
+				prop.Title = packet.GetString();
+				prop.PropInfo = packet.GetObj<PropInfo>();
+			}
+
+			prop.State = packet.GetString();
+			packet.GetLong();
+
+			if (packet.GetBool())
+				prop.Xml = packet.GetString();
+
+			if (!prop.IsServerProp)
+				prop.Direction = packet.GetFloat();
 		}
 	}
 }
